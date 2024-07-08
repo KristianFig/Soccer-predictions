@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Winner - Match Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* White background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('/Users/kristianfigueroa/Desktop/final-copa-america-2019-maracana.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .nav-tabs {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            background-color: #333; /* Dark background for the nav */
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+        }
+
+        .nav-tabs li {
+            float: right;
+        }
+
+        .nav-tabs li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .nav-tabs li a:hover {
+            background-color: #111;
+        }
+
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for container */
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333; /* Dark text color */
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555; /* Medium gray text color */
+        }
+
+        select, button {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333; /* Dark text color */
+        }
+    </style>
+</head>
+<body>
+    <ul class="nav-tabs">
+        <li><a href="home.html">Home</a></li>
+        <li><a href="resume.html">Resume</a></li>
+        <li><a href="projects.html">Projects</a></li>
+    </ul>
+
+    <div class="container">
+        <h1>Predict the Match Winner</h1>
+        <form id="predictionForm">
+            <label for="team1">Select Team 1:</label>
+            <select id="team1" name="team1">
+                <!-- Options will be dynamically populated -->
+            </select>
+
+            <label for="team2">Select Team 2:</label>
+            <select id="team2" name="team2">
+                <!-- Options will be dynamically populated -->
+            </select>
+
+            <button type="button" id="predictButton">Winner</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const team1Select = document.getElementById('team1');
+            const team2Select = document.getElementById('team2');
+            const predictButton = document.getElementById('predictButton');
+            const resultDiv = document.getElementById('result');
+
+            // Function to capitalize the first letter of each word
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+
+            // Function to fetch team names and populate dropdowns
+            function fetchTeamNames() {
+                fetch('http://127.0.0.1:5000/get_team_names')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.teams.forEach(team => {
+                            const option1 = document.createElement('option');
+                            option1.text = capitalizeFirstLetter(team);
+                            team1Select.add(option1);
+
+                            const option2 = document.createElement('option');
+                            option2.text = capitalizeFirstLetter(team);
+                            team2Select.add(option2);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching teams:', error));
+            }
+
+            // Function to predict the winner
+            function predictWinner(team1, team2) {
+                fetch(`http://127.0.0.1:5000/predict_winner?team_1=${team1}&team_2=${team2}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultDiv.textContent = `Winner: ${data.winner_of_match}`;
+                    })
+                    .catch(error => console.error('Error predicting winner:', error));
+            }
+
+            // Event listener for predict button click
+            predictButton.addEventListener('click', function() {
+                const selectedTeam1 = team1Select.value;
+                const selectedTeam2 = team2Select.value;
+
+                if (selectedTeam1 && selectedTeam2) {
+                    predictWinner(selectedTeam1, selectedTeam2);
+                } else {
+                    resultDiv.textContent = 'Please select both teams.';
+                }
+            });
+
+            // Fetch team names when the page loads
+            fetchTeamNames();
+        });
+    </script>
+</body>
+</html>
